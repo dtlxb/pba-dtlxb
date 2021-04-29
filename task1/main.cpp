@@ -5,7 +5,7 @@
 #include <random>
 #include <cstdlib>
 #include <cstdio>
-float M_PI = 3.1415926;
+float my_pi = 3.1415926;
 
 // print out error
 static void error_callback(int error, const char* description){
@@ -37,7 +37,7 @@ void draw(
     ::glBegin(GL_LINE_LOOP);
     ::glColor3f(0.f, 0.f, 0.f);
     const int ndiv = 64;
-    const float dr = 2.f*M_PI/ndiv;
+    const float dr = 2.f*my_pi/ndiv;
     for(unsigned int idiv=0;idiv<ndiv;++idiv){
       ::glVertex2f(
           0.5+0.2*cos(dr*float(idiv)),
