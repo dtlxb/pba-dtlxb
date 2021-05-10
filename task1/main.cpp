@@ -5,6 +5,7 @@
 #include <random>
 #include <cstdlib>
 #include <cstdio>
+float my_pi = 3.1415926;
 
 #ifndef M_PI
   #define M_PI 3.14159265358979323846
@@ -39,8 +40,8 @@ void draw(
   { // draw obstacle circle (center=(0.5,0.5) radius=0.2 )
     ::glBegin(GL_LINE_LOOP);
     ::glColor3f(0.f, 0.f, 0.f);
-    const unsigned int ndiv = 64;
-    const float dr = 2.f*M_PI/ndiv;
+    const int ndiv = 64;
+    const float dr = 2.f*my_pi/ndiv;
     for(unsigned int idiv=0;idiv<ndiv;++idiv){
       ::glVertex2f(
           0.5+0.2*cos(dr*float(idiv)),
@@ -59,10 +60,12 @@ void draw(
   ::glEnd();
 }
 
-void simulate(
-    std::vector<CParticle>& aParticle,
-    float dt)
-{
+void simulate(std::vector<CParticle>& aParticle,float dt)
+{ for(auto & p : aParticle){
+    p.pos[0] += p.velo[0]*dt;
+    p.pos[1] += p.velo[1]*dt;
+  }
+  for(auto & p : aParticle){
     // solve collisions below
     if( p.pos[0] < 0 ){ // left wall
       p.pos[0] = -p.pos[0];
@@ -79,21 +82,45 @@ void simulate(
       p.pos[1] = 2-p.pos[1];
       p.velo[1] = -p.velo[1];
     }
-      float dy = p.pos[1]-0.5f; // y-coord from center
-      float dist_from_center = sqrt(dx*dx+dy*dy);
-      if( dist_from_center < 0.2 ){ // collision with obstacle
-        float norm[2] = {dx/dist_from_center, dy/dist_from_center }; // unit normal vector of the circle
-        float vnorm = p.velo[0]*norm[0] + p.velo[1]*norm[1]; // normal component of the velocity
+
+    float dx = p.pos[0]-0.5f;
+    float dy = p.pos[1]-0.5f; // y-coord from center
+    float dist_from_center = sqrt(dx*dx+dy*dy);
+
+    if( dist_from_center < 0.2 ){ // collision with obstacle
+      std::cout<<"Collision!"<<std::endl;
+      std::cout<<"Before Pos:("<<p.pos[0]<<", "<<p.pos[1]<<")"<<"Before Velo:("<<p.velo[0]<<", "<<p.velo[1]<<")"<<std::endl;
+      float norm[2] = {dx/dist_from_center, dy/dist_from_center }; // unit normal vector of the circle
+      std::cout<<"Norm:("<<norm[0]<<", "<<norm[1]<<")"<<std::endl;
+      float vnorm = p.velo[0]*norm[0] + p.velo[1]*norm[1]; // normal component of the velocity
         ////////////////////////////
         // write something below !
-//        p.velo[0] =
-//        p.velo[1] =
-//        p.pos[0] =
-//        p.pos[1] =
+
+        // roll back. This is not the TRUE positionW. 
+        //while (sqrt((p.pos[0]-0.5f)*(p.pos[0]-0.5f)+(p.pos[1]-0.5f)*(p.pos[1]-0.5f))<0.2){
+        p.pos[0] -= p.velo[0] * dt;p.pos[1] -= p.velo[1] * dt;
+        //}
+        //p.pos[0] = 0.5 + 2*norm[0]*norm[1]* (p.pos[1]-0.5) + (norm[0]*norm[0] - norm[1]*norm[1]) * (p.pos[0]-0.5);
+        //p.pos[1] = 0.5 + 2*norm[0]*norm[1]* (p.pos[0]-0.5) + ( - norm[0]*norm[0] + norm[1]*norm[1]) * (p.pos[1]-0.5);
+        float v_abs = sqrt(p.velo[0] * p.velo[0] + p.velo[1] * p.velo[1]);
+        p.velo[0] = 2*norm[0]*norm[1]* (-p.velo[1]) + (norm[0]*norm[0] - norm[1]*norm[1]) * (-p.velo[0]);
+        p.velo[1] = 2*norm[0]*norm[1]* (-p.velo[0]) + ( - norm[0]*norm[0] + norm[1]*norm[1]) * (-p.velo[1]);
+        p.velo[0] /= norm[0]*norm[0] + norm[1]*norm[1];
+        p.velo[1] /= norm[0]*norm[0] + norm[1]*norm[1];
+        float v_new_abs = sqrt(p.velo[0] * p.velo[0] + p.velo[1] * p.velo[1]);
+        float ratio = v_abs/v_new_abs;
+        p.velo[0] *= ratio; p.velo[1] *= ratio;
+
+      std::cout<<"After Pos:("<<p.pos[0]<<", "<<p.pos[1]<<")"<<"After Velo:("<<p.velo[0]<<", "<<p.velo[1]<<")"<<std::endl<<std::endl;
       }
+
     }
-  }
+
+  
 }
+
+
+
 int main()
 {
   const unsigned int N = 50; // number of points
