@@ -120,6 +120,7 @@ void collision_detection(
 {
   // reset all the circle as "not collided"
   for(auto& c : aCircle){ c.is_collided = false; }
+
   std::vector<CPosIndex> aPosIndex;
   aPosIndex.reserve(aCircle.size());
   for(unsigned int ic=0; ic < aCircle.size(); ++ic){
@@ -127,6 +128,7 @@ void collision_detection(
     aPosIndex.push_back({aCircle[ic].pos[0] + rad, false, ic}); // exit
   }
   std::sort(aPosIndex.begin(),aPosIndex.end()); // sort array by quick sort
+
   std::set<unsigned int> stack;
   for(auto& pi : aPosIndex){
 //    std::cout << pi.p << " " << pi.is_start << " " << pi.icircle << std::endl;
@@ -136,6 +138,16 @@ void collision_detection(
       // write some codes here (probably 5 - 10 lines)
       // use the function "is_collide()" at line #102
       // ----------------------------------------------
+
+      // check each circle in stack
+      for (auto si : stack){
+        if (is_collide(aCircle[si],aCircle[ic0],rad)) {
+          aCircle[si].is_collided = true;
+          aCircle[ic0].is_collided = true;
+        }
+      }
+
+
       stack.insert(ic0);
     }
     else{ // exit the range of the circle
