@@ -29,7 +29,7 @@ double distance2(const T* p0, const T* p1)
  * @param[out] ddW 2nd-order differentiation of energy w.r.t. positions
  * @param[in] ap positions of the end points of an edge
  * @param[in] Len initial length of the spring
- * @param[in] stiffness stiffness of the spring
+ * @param[in] stiffness stiffness of the spring 
  */
 DFM2_INLINE void WdWddW_Spring2(
     double& W,
@@ -56,12 +56,30 @@ DFM2_INLINE void WdWddW_Spring2(
       // write some code below to compute the ddC.
       // ddC[ino][jno][ino][jno] means differentiation of C w.r.t. p[ino][idim] and then p[jno][jdim]
 
-//      ddC[0][0][idim][jdim] =
-//      ddC[0][1][idim][jdim] =
-//      ddC[1][0][idim][jdim] =
-//      ddC[1][1][idim][jdim] =
+      ddC[0][0][idim][jdim] = u01[jdim] / u01[idim];
+      ddC[0][1][idim][jdim] = -u01[jdim] / u01[idim];
+      ddC[1][0][idim][jdim] = -u01[jdim] / u01[idim];
+      ddC[1][1][idim][jdim] = u01[jdim] / u01[idim];
+
+
     }
   }
+  /* this is a bad try, after massive hand-computation...
+  double u0 = u01[0];
+  double u1 = u01[1];
+  ddC[1][1][0][0] = u1*u1 / len;
+  ddC[1][1][0][1] = -u0*u1 / len;
+  ddC[1][1][1][0] = -u0*u1 / len;
+  ddC[1][1][1][1] = u0*u0 / len;
+
+  for (int i = 0; i < 2; i++){
+    for (int j = 0; j < 2; j++){
+      ddC[0][0][i][j] = -ddC[1][1][i][j];
+      ddC[1][0][i][j] = 0;
+      ddC[0][1][i][j] = 0;
+    }
+  }*/
+
   //
   W = 0.5 * stiffness * C * C; // Hooke's law. energy is square of length difference W=1/2*k*C*C
   for(int ino=0; ino < nnode; ++ino){

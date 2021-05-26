@@ -34,7 +34,7 @@ Build the program using `cmake`. Run the program and take a screenshot image of 
 === paste screenshot here ===
 
 
-
+![1](1.png)
 
 
 ## Problem 2
@@ -51,7 +51,7 @@ Paste the screenshot image of converged deformation below:
 
 == paste screenshot image here==
 
-
+![2](2.png)
 
 
 
