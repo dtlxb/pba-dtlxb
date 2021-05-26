@@ -56,29 +56,32 @@ DFM2_INLINE void WdWddW_Spring2(
       // write some code below to compute the ddC.
       // ddC[ino][jno][ino][jno] means differentiation of C w.r.t. p[ino][idim] and then p[jno][jdim]
 
-      ddC[0][0][idim][jdim] = u01[jdim] / u01[idim];
-      ddC[0][1][idim][jdim] = -u01[jdim] / u01[idim];
-      ddC[1][0][idim][jdim] = -u01[jdim] / u01[idim];
-      ddC[1][1][idim][jdim] = u01[jdim] / u01[idim];
+//      ddC[0][0][idim][jdim] = u01[jdim] / u01[idim];
+//      ddC[0][1][idim][jdim] = -u01[jdim] / u01[idim];
+//      ddC[1][0][idim][jdim] = -u01[jdim] / u01[idim];
+//      ddC[1][1][idim][jdim] = u01[jdim] / u01[idim];
 
 
     }
   }
-  /* this is a bad try, after massive hand-computation...
-  double u0 = u01[0];
-  double u1 = u01[1];
-  ddC[1][1][0][0] = u1*u1 / len;
-  ddC[1][1][0][1] = -u0*u1 / len;
-  ddC[1][1][1][0] = -u0*u1 / len;
-  ddC[1][1][1][1] = u0*u0 / len;
+  // I think maybe this one is analytical correct. If it's not the answer, I'll wait for the next class.
+  double x0 = ap[0][0];double y0 = ap[0][1];double x1 = ap[1][0];double y1 = ap[1][1];
+  ddC[1][1][0][0] = 1 / len + (x1-x0)*(x1-x0) / (len*len*len);
+  ddC[1][0][0][0] = -ddC[1][1][0][0];
+  ddC[1][1][0][1] = - (x1-x0)*(y1-y0) / (len*len*len);
+  ddC[1][0][0][1] = - ddC[1][1][0][1];
+
+  ddC[1][1][1][1] = 1 / len + (y1-y0)*(y1-y0) / (len*len*len);
+  ddC[1][0][1][1] = -ddC[1][1][1][1];
+  ddC[1][1][1][0] = - (x1-x0)*(y1-y0) / (len*len*len);
+  ddC[1][0][1][0] = - ddC[1][1][1][0];
 
   for (int i = 0; i < 2; i++){
     for (int j = 0; j < 2; j++){
-      ddC[0][0][i][j] = -ddC[1][1][i][j];
-      ddC[1][0][i][j] = 0;
-      ddC[0][1][i][j] = 0;
+      ddC[0][i][0][j] = -ddC[1][i][0][j];
+      ddC[0][i][1][j] = -ddC[1][i][1][j];
     }
-  }*/
+  }
 
   //
   W = 0.5 * stiffness * C * C; // Hooke's law. energy is square of length difference W=1/2*k*C*C
