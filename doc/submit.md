@@ -8,7 +8,7 @@ There are many small programming assignments. These assignements needs to be sub
 
 ![](../doc/githubclassroom.png)
 
-The assignment is submitted using "pullrequest" functionality of the GitHub. Using the system called "GitHub Classroom", each student makes his/her own private repository that is a copy of "https://github.com/PBA-2021S/pba". If a student has a GitHub account named `<username>`, the name of the repository will be `pba-<username>`. The private repository is only visible from the student and the instructor. In the second class, It will be shown how to make your own class repository using GitHub classroom. 
+The assignments need to be submitted using "pullrequest" functionality of the GitHub. Using the system called "GitHub Classroom", each student makes his/her own private repository that is a copy of "https://github.com/PBA-2021S/pba". If a student has a GitHub account named `<username>`, the name of the repository will be `pba-<username>`. The private repository is only visible from the student and the instructor. In the second class, It will be shown how to make your own class repository using GitHub classroom. 
 
 
 
@@ -57,11 +57,22 @@ $ git reset --hard origin/main   # reset the local main branch same as remote re
 
 
 
-## Setup Library
+## Setup Libraries
 
-You need to install GLFW Library. 
+For all the assignement, we use GLFW Library for OpenGL visualization. Please take a look at the following document
 
 - [How to Set Up GLFW Library](../doc/setup_glfw.md)
+
+Some assignement use [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) library for matrix operation. Please follow the following document for setting up.    
+
+- [How to set up the Eigen Library](../doc/setup_eigen.md)  
+
+Additionally, for some assignements, [DelFEM2](https://github.com/nobuyuki83/delfem2) needs to be installed in `pba-<username>/3rd_party` . DelFEM2 is a collection of useful C++ codes written by the instructer. Please install and updte this library with the following command.
+
+```bash
+$ cd pba-<username> # go to the top of local repository
+$ git submodule update --init 3rd_party/delfem2
+```
 
 
 
