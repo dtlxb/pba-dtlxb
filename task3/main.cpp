@@ -65,14 +65,15 @@ DFM2_INLINE void WdWddW_Spring2(
     }
   }
   // I think maybe this one is analytical correct. If it's not the answer, I'll wait for the next class.
+  // I mistaken the (u/v)' formula....
   double x0 = ap[0][0];double y0 = ap[0][1];double x1 = ap[1][0];double y1 = ap[1][1];
-  ddC[1][1][0][0] = 1 / len + (x1-x0)*(x1-x0) / (len*len*len);
-  ddC[1][0][0][0] = -ddC[1][1][0][0];
+  ddC[1][1][0][0] = ( -(x1-x0)*(x1-x0) + (len*len)) / (len*len*len);
+  ddC[1][0][0][0] = - ddC[1][1][0][0];
   ddC[1][1][0][1] = - (x1-x0)*(y1-y0) / (len*len*len);
   ddC[1][0][0][1] = - ddC[1][1][0][1];
 
-  ddC[1][1][1][1] = 1 / len + (y1-y0)*(y1-y0) / (len*len*len);
-  ddC[1][0][1][1] = -ddC[1][1][1][1];
+  ddC[1][1][1][1] = ( -(y1-y0)*(y1-y0) + (len*len)) / (len*len*len);
+  ddC[1][0][1][1] = - ddC[1][1][1][1];
   ddC[1][1][1][0] = - (x1-x0)*(y1-y0) / (len*len*len);
   ddC[1][0][1][0] = - ddC[1][1][1][0];
 
