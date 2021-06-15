@@ -1,18 +1,21 @@
-**this assignment is currently under development**
+# Task7: Optimization of Rotation 
 
-![under construction](../doc/mole.png)
+- **Deadline: June 17th (Thursday) at 15:00**
 
-----
+![preview](preview.png)
 
-# Task7: Princepal Axces of a 3D Shape
 
 ## Setting Up
 
 Pleae look at the following document for environment setup, creating branch, and making pull request.
 
-[How to Submit the Assignment](../doc/submit.md)
+- [How to Submit the Assignment](../doc/submit.md)
 
-Additionally, you need the library [DelFEM2](https://github.com/nobuyuki83/delfem2) in `pba-<username>/3rd_party` 
+In this assignment, it is necessary to install [Eigen](https://eigen.tuxfamily.org/index.php?title=Main_Page) library.  Please follow the following document for setting up.    
+
+- [How to set up the Eigen Library](../doc/setup_eigen.md)  
+
+Additionally, you need the library [DelFEM2](https://github.com/nobuyuki83/delfem2) installed and updated in `pba-<username>/3rd_party` 
 
 ```bash
 $ cd pba-<username> # go to the top of local repository
@@ -25,30 +28,45 @@ $ git submodule update --init 3rd_party/delfem2
 
 ## Problem1
 
-Compile the `main.cpp` using the `CMakeLists.txt` and take a screen shot. Past the screenshot image below.
+Build the `main.cpp` using `cmake`. Run the program and take a screenshot image of the window.  Paste the screenshot image below by editing this mark down document:
 
-=== paset screenshot here ===
+=== paste screenshot here ===
+
 
 
 
 ## Problem 2
 
-Compute rotational inertia of the attached OBJ file.
+Optimize the rotation matrix `R` such that the sum of squared distances between the rotated source points and fixed target points are minimized. Use the Netwon's method for the energy minimization. Write some code around line #71 in the `main.cpp` to compute the gradient and hessian of the energy of one pair of source and target points. (The modifications are probably very little, just two lines of short codes). **Once the implementation is successful, the energy should steadly decrease.** 
+
+The following slides **may be** useful for this assignments:
+
+![](slide_rotation0.png)
+
+![](slide_rotation1.png)
+
+![](slide_rotation2.png)
 
 
 
-### Problem 3
+Report the energy after convergence: 
 
-Compute and visualize the princepal axis of the shape.
+- converged energy = ?????
 
-=== paste the screen shot here ===
+
+
+Paste the resulting screenshot image below:
+
+=== paste screenshot image here ===
+
+  
+
 
 
 
 
 
 ----
-
 
 
 
