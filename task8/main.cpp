@@ -102,6 +102,10 @@ void AnimationByEnergyMinimization(
     const double gravity[2],
     const std::vector<int>& aBCFlag)
 { // simulation
+
+  // animation too slow so multiply dt
+  dt *= 5;
+
   const unsigned int nDof = aXY.size(); // total degree of freedom
   const unsigned int np = nDof/2; // number of points
   // make tentative position aXYt = aXY + dt*aUV
@@ -109,65 +113,97 @@ void AnimationByEnergyMinimization(
   for(unsigned int i=0;i<nDof;++i){
     aXYt[i] += dt*aUV[i];
   }
-  Eigen::MatrixXd hessW(nDof,nDof); // hessian matrix
-  Eigen::VectorXd gradW(nDof); // gradient vector
-  hessW.setZero();
-  gradW.setZero();
-  for(int il=0;il<aLine.size()/2;++il){ // loop over springs
-    const unsigned int ip0 = aLine[il*2+0]; // index of point0
-    const unsigned int ip1 = aLine[il*2+1]; // index of point1
-    const double Len = distance2(aXY0.data()+ip0*2, aXY0.data()+ip1*2); // initial length
-    const double ap[2][2] = {
-        { aXY[ip0*2+0], aXY[ip0*2+1] },
-        { aXY[ip1*2+0], aXY[ip1*2+1] } };
-    double w, dw[2][2], ddw[2][2][2][2];
-    WdWddW_Spring2(
-        w,dw,ddw,
-        ap,Len,stiffness);
-    // merge gradient
-    for(unsigned int ino=0;ino<2;++ino) {
-      unsigned int ip = aLine[il*2+ino];
-      gradW(ip*2+0) += dw[ino][0];
-      gradW(ip*2+1) += dw[ino][1];
-    }
-    // merge hessian
-    for(unsigned int ino=0;ino<2;++ino) {
-      for(unsigned int jno=0;jno<2;++jno) {
-        unsigned int ip = aLine[il*2+ino];
-        unsigned int jp = aLine[il*2+jno];
-        hessW(ip * 2 + 0, jp * 2 + 0) += ddw[ino][jno][0][0];
-        hessW(ip * 2 + 0, jp * 2 + 1) += ddw[ino][jno][0][1];
-        hessW(ip * 2 + 1, jp * 2 + 0) += ddw[ino][jno][1][0];
-        hessW(ip * 2 + 1, jp * 2 + 1) += ddw[ino][jno][1][1];
-      }
-    }
-  }
-  // adding gradient of gravitational potential energy (hessian is zero for gravity energy)
-  for(unsigned int ip=0;ip<np;++ip) {
-    gradW(ip*2+0) -= mass_point*gravity[0];
-    gradW(ip*2+1) -= mass_point*gravity[1];
-  }
-  // add the inertia effect below
-  for(unsigned int i=0;i<nDof;++i){
-  // hessW(i,i) +=
-  }
-  // adding boundary condition
-  for(unsigned int i=0;i<nDof;++i){
-    if( aBCFlag[i] == 0 ){ continue; } // if this DoF is free, skip
-    gradW[i] = 0;
-    for(unsigned int j=0;j<nDof;++j) {
-      hessW(i,j) = hessW(j,i) = 0.0;
-    }
-    hessW(i,i) = 1.0;
-  }
-  Eigen::FullPivLU< Eigen::MatrixXd > lu(hessW); // LU decomposition
-  Eigen::VectorXd update = lu.solve(gradW); // solve matrix
-  // modify velocity and position update below.
-  for(unsigned int i=0;i<nDof;++i){
-//    aUV[i] =
-    aXY[i] = aXY[i]-update(i);
-  }
 
+  // backup aXY
+  std::vector<double> aXYback = aXY;
+
+  // E
+  double para = mass_point/(dt*dt);
+  
+  int max_newton_iter = 10;
+  for (int counter = 0; counter < max_newton_iter; counter++){
+  // loop a local newton method to optimize E.
+  // when max iter = 1, it is static optimization.
+  // when max iter = 2, it's still static, because the numerical approximation is not good enough. 
+  // when max iter = 3, it shows some physical features of spring, but the spring is still very stiff and converges after a bounce.
+  // when max iter = 10, it's a very realistic spring which jumps for a long time before converging. The frame rate is low, use a good computer to appreciate the beautiful spring!
+
+    Eigen::MatrixXd hessW(nDof,nDof); // hessian matrix
+    Eigen::VectorXd gradW(nDof); // gradient vector
+    hessW.setZero();
+    gradW.setZero();
+    for(int il=0;il<aLine.size()/2;++il){ // loop over springs
+      // for each point
+
+      const unsigned int ip0 = aLine[il*2+0]; // index of point0
+      const unsigned int ip1 = aLine[il*2+1]; // index of point1
+      const double Len = distance2(aXY0.data()+ip0*2, aXY0.data()+ip1*2); // initial length
+      const double ap[2][2] = {
+          { aXY[ip0*2+0], aXY[ip0*2+1] },
+          { aXY[ip1*2+0], aXY[ip1*2+1] } };
+      double w, dw[2][2], ddw[2][2][2][2];
+      WdWddW_Spring2(
+          w,dw,ddw,
+          ap,Len,stiffness);
+      // merge gradient
+      for(unsigned int ino=0;ino<2;++ino) {
+        unsigned int ip = aLine[il*2+ino];
+        gradW(ip*2+0) += dw[ino][0];
+        gradW(ip*2+1) += dw[ino][1];
+      }
+      // merge hessian
+      for(unsigned int ino=0;ino<2;++ino) {
+        for(unsigned int jno=0;jno<2;++jno) {
+          unsigned int ip = aLine[il*2+ino];
+          unsigned int jp = aLine[il*2+jno];
+          hessW(ip * 2 + 0, jp * 2 + 0) += ddw[ino][jno][0][0] + 2*para;
+          hessW(ip * 2 + 0, jp * 2 + 1) += ddw[ino][jno][0][1];
+          hessW(ip * 2 + 1, jp * 2 + 0) += ddw[ino][jno][1][0];
+          hessW(ip * 2 + 1, jp * 2 + 1) += ddw[ino][jno][1][1] + 2*para;
+        }
+      }
+
+    // add G&H for E
+    gradW(ip0*2) += 2*para*(aXY[ip0*2]-aXYt[ip0*2]);
+    gradW(ip0*2+1) += 2*para*(aXY[ip0*2+1]-aXYt[ip0*2+1]);
+    gradW(ip1*2) += 2*para*(aXY[ip1*2]-aXYt[ip1*2]);
+    gradW(ip1*2+1) += 2*para*(aXY[ip1*2+1]-aXYt[ip1*2+1]);
+
+    } // end foreach point
+
+    // adding gradient of gravitational potential energy (hessian is zero for gravity energy)
+    for(unsigned int ip=0;ip<np;++ip) {
+      gradW(ip*2+0) -= mass_point*gravity[0];
+      gradW(ip*2+1) -= mass_point*gravity[1];
+    }
+    // add the inertia effect below
+    for(unsigned int i=0;i<nDof;++i){
+    // hessW(i,i) +=
+    }
+    // adding boundary condition
+    for(unsigned int i=0;i<nDof;++i){
+      if( aBCFlag[i] == 0 ){ continue; } // if this DoF is free, skip
+      gradW[i] = 0;
+      for(unsigned int j=0;j<nDof;++j) {
+        hessW(i,j) = hessW(j,i) = 0.0;
+      }
+      hessW(i,i) = 1.0;
+    }
+    Eigen::FullPivLU< Eigen::MatrixXd > lu(hessW); // LU decomposition
+    Eigen::VectorXd update = lu.solve(gradW); // solve matrix
+    // modify velocity and position update below.
+    for(unsigned int i=0;i<nDof;++i){
+  //    aUV[i] =
+      aXY[i] = aXY[i]-update(i);
+    }
+
+  } // Newton E finish
+
+  //update velocity
+    for(unsigned int i=0;i<nDof;++i){
+      aUV[i] = (aXY[i]-aXYback[i])/dt;
+    }
+  
 }
 
 void SettingUpSimulation(

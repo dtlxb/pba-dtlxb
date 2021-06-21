@@ -33,7 +33,7 @@ Build the program using `cmake`. Run the program and take a screenshot image of 
 === paste screenshot here ===
 
 
-
+![1](0.png)
 
 
 ## Problem 2
@@ -52,8 +52,13 @@ Paste the screenshot image of the animation below:
 
 == paste screenshot image here==
 
+1. converge 
 
+![1](1.png)
 
+2. jumping spring when max iter=10
+
+![2](2.png)
 
 
 
