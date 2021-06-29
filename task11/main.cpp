@@ -48,7 +48,8 @@ void InertiaTensor(
     std::vector<unsigned int>& aTri)
 {
   // zero clear Imat
-  Imat = 1.0e-5*Eigen::Matrix3d::Identity(); // zero clear the tensor
+  
+    Imat = 1.0e-5*Eigen::Matrix3d::Identity(); // zero clear the tensor
   for(unsigned int it=0;it<aTri.size()/3;++it){
     const Eigen::Vector3d ap[3] = { // coordinates of triangle corner points
         Eigen::Map<Eigen::Vector3d>(aXYZ.data()+aTri[it*3+0]*3),
@@ -57,7 +58,25 @@ void InertiaTensor(
     };
     const double area = (ap[1]-ap[0]).cross(ap[2]-ap[0]).norm()/2; // area of triangle
     // write some code below to compute inertia tensor
+
+    Eigen::Matrix3d sum = 1.0e-5 * Eigen::Matrix3d::Identity();
+    // outer product term
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            sum(i,j) += ap[0][i] * ap[0][j] + ap[0][i] * ap[1][j] + ap[0][i] * ap[2][j] + ap[1][i] * ap[2][j] + +ap[1][i] * ap[1][j] + ap[2][i] * ap[2][j];
+        }
+    }
+    // inner product term
+    for (int i = 0; i < 3; i++) {
+        sum(i, i) -= ap[0].dot(ap[0]) + ap[1].dot(ap[1]) + ap[2].dot(ap[2]) + ap[0].dot(ap[1]) + ap[1].dot(ap[2]) + ap[0].dot(ap[2]);
+    }
+
+    // Li^2 = 2LiLj = 1/6 Area
+    sum *= -area / 6;
+
+    Imat += sum;
   }
+
 }
 
 /**
