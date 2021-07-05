@@ -122,7 +122,55 @@ int main()
             aMass[aQuad[iq*4+3]] };
         // write some code below to rigidly transform the points in the rest shape (`aq`) such that the
         // weighted sum of squared distances against the points in the tentative shape (`qp`) is minimized (`am` is the weight).
+        
+        
+        //std::cout << "aq:" << std::endl << aq[0][0] << std::endl;
+        //std::cout << "ap:" << std::endl << ap[0][0] << std::endl;
+        //std::cout << "m:" << std::endl << am[0] << std::endl;
 
+        Eigen::Vector2f Tcg = Eigen::Vector2f::Zero();
+        Eigen::Vector2f tcg = Eigen::Vector2f::Zero();
+        float Wsum = am[0] + am[1] + am[2] + am[3];
+        //std::cout << "W:" << std::endl << Wsum << std::endl;
+        for (int i = 0; i < 4; i++){
+          Tcg[0]+=aq[i][0]*am[i]/Wsum; // Tcg--Rest--aq
+          Tcg[1]+=aq[i][1]*am[i]/Wsum; 
+
+          tcg[0]+=ap[i][0]*am[i]/Wsum; // tcg--Tentative--ap
+          tcg[1]+=ap[i][1]*am[i]/Wsum;
+          
+        }
+        //std::cout << "Tcg:" << std::endl << Tcg << std::endl;
+        //std::cout << "tcg:" << std::endl << tcg << std::endl;
+        // A, B
+        Eigen::MatrixXf A(2,4);
+        Eigen::MatrixXf B(2,4);
+        for (int i = 0; i < 4; i++){
+          for (int dim = 0; dim < 2; dim++){
+            A(dim, i) = sqrt(am[i]) * (aq[i][dim] - Tcg[dim]);
+            B(dim, i) = sqrt(am[i]) * (ap[i][dim] - tcg[dim]);
+          }
+        }
+        //std::cout << "A:" << std::endl << A << std::endl;
+        //std::cout << "B:" << std::endl << B << std::endl;
+        // R opt
+        Eigen::MatrixXf m = B*A.transpose();
+        Eigen::JacobiSVD<Eigen::MatrixXf> svd(m, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::MatrixXf Ropt = svd.matrixU()*(svd.matrixV().transpose());
+
+        // t opt
+        Eigen::Vector2f topt = tcg - Ropt*Tcg;
+        //std::cout << "Ropt:" << std::endl << Ropt << std::endl;
+        //std::cout << "topt:" << std::endl << topt << std::endl;
+        // set new tentative
+        for (int i = 0; i < 4 ;i++){
+          Eigen::Vector2f tmp = Ropt * aq[i] + topt;
+            //std::cout << "tmp tentative" << i << ":" << tmp << std::endl;
+          for (int dim = 0; dim < 2; dim++){
+            //std::cout << aXYt[aQuad[iq*4+i]*2+dim] << std::endl;
+            aXYt[aQuad[iq*4+i]*2+dim] = tmp[dim];
+          }
+        }
 
         // no edits further down
       }
